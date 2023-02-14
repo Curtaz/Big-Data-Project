@@ -1,0 +1,79 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # NOTE: This will enable public access to the opened port
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine and only allow access
+  # via 127.0.0.1 to disable public access
+  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+
+  config.vm.provider "virtualbox" do |vb|
+    # Display the VirtualBox GUI when booting the machine
+    vb.gui = false
+    # Customize the amount of memory on the VM:
+    vb.memory = 2048
+    vb.cpus = 2
+    # create a master VM before creating the linked clones
+    vb.linked_clone = true
+
+    vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+  end
+ 
+  # View the documentation for the provider you are using for more
+  # information on available options.
+
+  # Namenode & Spark Master
+  config.vm.define "node-master" do |master|
+    master.vm.box_check_update = false
+    master.vm.box = "ubuntu/jammy64"
+    master.vm.define "node-master"
+    # name of the virtual machine instance
+    master.vm.hostname = "node-master"
+    # assign a static IP
+    master.vm.network "private_network", ip: "192.168.33.2"
+  end
+
+  # Datanode & Spark slave 1
+  config.vm.define "node1" do |node1|
+    node1.vm.box_check_update = false
+    node1.vm.box = "ubuntu/jammy64"
+    node1.vm.define "node1"
+    # name of the virtual machine instance
+    node1.vm.hostname = "node1"
+    # assign a static IP
+    node1.vm.network "private_network", ip: "192.168.33.10"
+  end
+
+  # Datanode & Spark slave 2
+  config.vm.define "node2" do |node2|
+    node2.vm.box_check_update = false
+    node2.vm.box = "ubuntu/jammy64"
+    node2.vm.define "node2"
+    # name of the virtual machine instance
+    node2.vm.hostname = "node2"
+    # assign a static IP
+    node2.vm.network "private_network", ip: "192.168.33.11"
+  end
+
+
+  # Enable provisioning with a shell script. Additional provisioners such as
+  # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
+  # documentation for more information about their specific syntax and use.
+  # config.vm.provision "shell", inline: <<-SHELL
+  #   apt-get update
+  #   apt-get install -y apache2
+  # SHELL
+  config.vm.provision :shell, path: "bootstrap.sh"
+end
