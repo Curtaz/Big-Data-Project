@@ -44,6 +44,8 @@ The configuration of the machines is almost fully automated, still a few steps a
 - Check if the private network is working properly. On one of the machines (or all, if you want), try to ping the other ones: 
   ```
   ping node-master # equivalent to ping 192.168.33.2, aliases are contained in the file /etc/hosts.
+  ping node1
+  ping node2
 	```
 - All the following commands are to be run by the user ubuntu, both in the master and the slave machines. If you are not logged in as ubuntu, do the following:
   ```
@@ -79,10 +81,10 @@ The configuration of the machines is almost fully automated, still a few steps a
   ```
 - If this works, you're ready to set up the hdfs and yarn. On node-master, run the following commands: 
   ```
-  hdfs dfs -format # this will create the necessary directories in namenode and datanodes 
+  hdfs namenode -hformat # this will create the necessary directories in namenode and datanodes 
+  start-all.sh # this will launch both the hadoop demon and yarn manager
   hdfs dfs -mkdir /spark-logs # this is necessary when running spark to access the logs using the GUI
-  start-all.sh # this will launch both the hadoop demon and yarn 
-  $SPARK_HOME/sbin/start_history_server.sh
+  $SPARK_HOME/sbin/start-history-server.sh
   ```
 - Now, if all is good, you should have all the services working and available on the web interface. To access them, just open a browser and insert the urls: 
   > - 192.168.33.2:8088   => yarn dashboard
@@ -94,9 +96,14 @@ The configuration of the machines is almost fully automated, still a few steps a
   jps 
   ```
   you should see Namenode,SecondaryNameNode and ResourceManager in node-master, and DataNode and NodeManager in the slaves. 
-  
-- To work on the dataset, you'll need to put it in the hdfs: 
+
+## Demo notebook
+
+- On the host, download the dataset from Kaggle ([link](https://www.kaggle.com/datasets/daveianhickey/2000-16-traffic-flow-england-scotland-wales)) and place it in the "VMs" folder (this is also the root of the shared folder.
+
+- To work on the dataset, you'll need to put it in the hdfs. On node-master, run: 
   ```
+  cp -r /vagrant/UK-traffic-accidents /home/ubuntu
   hdfs dfs -put /vagrant/UK-traffic-accidents /user/ubuntu
   ```
   NOTE: sometimes, for reasons unknown to me, the user folder doesn't get created, so it is necessary to create it by hand
@@ -111,7 +118,7 @@ The configuration of the machines is almost fully automated, still a few steps a
 - To open the notebook, copy it in the home folder and launch pyspark
   ```
   cp /vagrant/UK-traffic-accidents.ipynb /home/ubuntu
-  cd
+  cd /home/ubuntu
   pyspark
   ```
 - Now, on the host machine, you should be able to access the jupyter server at the address which is displayed on the terminal.
